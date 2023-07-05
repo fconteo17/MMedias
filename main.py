@@ -1,0 +1,87 @@
+import sys
+
+from PyQt6 import QtWidgets
+from PyQt6.QtGui import QColor
+
+import tela_inicial
+import tela_notas
+from util.solver import resolve
+from util.mauanet import get_notas
+
+
+class Controller:
+    def __init__(self):
+        self.materias = {}
+        self.is_shown = False
+
+        self.tela_inicial_window = QtWidgets.QMainWindow()
+        self.tela_inicial_ui = tela_inicial.Ui_Dialog()
+        self.tela_inicial_ui.setupUi(self.tela_inicial_window)
+
+        self.tela_notas_window = QtWidgets.QMainWindow()
+        self.tela_notas_ui = tela_notas.Ui_Dialog()
+        self.tela_notas_ui.setupUi(self.tela_notas_window)
+        self.tela_notas_ui.provas.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self.tela_notas_ui.trabalhos.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+
+        self.tela_inicial_ui.btn_login.clicked.connect(self.login)
+        self.tela_notas_ui.provas.itemChanged.connect(self.update_notas_prova)
+        self.tela_notas_ui.trabalhos.itemChanged.connect(self.update_notas_trabalho)
+        self.tela_notas_ui.recalcular.clicked.connect(self.recalcular)
+
+    def show_tela_inicial(self):
+        self.tela_inicial_window.show()
+
+    def login(self):
+        self.materias = get_notas(self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text())
+        self.tela_inicial_window.close()
+        self.tela_notas_window.show()
+        self.load_data(self.materias)
+
+    def load_data(self, materias):
+        self.tela_notas_ui.provas.setRowCount(len(materias))
+        self.tela_notas_ui.trabalhos.setRowCount(len(materias))
+        row = 0
+        for materia, notas in materias.items():
+            for table, keys in [(self.tela_notas_ui.provas, ['P1', 'P2', 'P3', 'P4']),
+                                (self.tela_notas_ui.trabalhos, ['T1', 'T2', 'T3', 'T4'])]:
+                for i, key in enumerate(keys):
+                    item = QtWidgets.QTableWidgetItem(str(notas.get(key, [''])[0]))
+                    if key in notas and notas[key][1] == 0:
+                        item.setBackground(QColor(133, 226, 255))
+                    elif key not in notas:
+                        item.setBackground(QColor(66, 66, 66))
+                    table.setItem(row, i+1, item)
+
+            self.tela_notas_ui.provas.setItem(row, 0, QtWidgets.QTableWidgetItem(materia))
+            self.tela_notas_ui.trabalhos.setItem(row, 0, QtWidgets.QTableWidgetItem(materia))
+
+            row += 1
+        self.is_shown = True
+
+    def update_notas_prova(self, item):
+        if self.is_shown:
+            materia = self.tela_notas_ui.provas.item(item.row(), 0).text()
+            nota = self.tela_notas_ui.provas.horizontalHeaderItem(item.column()).text()
+            self.materias[materia][nota] = [item.text(), 1]
+            print(self.materias)
+
+    def update_notas_trabalho(self, item):
+        if self.is_shown:
+            materia = self.tela_notas_ui.trabalhos.item(item.row(), 0).text()
+            nota = self.tela_notas_ui.trabalhos.horizontalHeaderItem(item.column()).text()
+            self.materias[materia][nota] = [item.text(), 1]
+            print(self.materias)
+
+    def recalcular(self):
+        self.is_shown = False
+        self.materias = resolve(self.materias)
+        self.load_data(self.materias)
+        self.is_shown = True
+
+
+if __name__ == '__main__':
+    app = QtWidgets.QApplication(sys.argv)
+    controller = Controller()
+    controller.show_tela_inicial()
+    sys.exit(app.exec())
