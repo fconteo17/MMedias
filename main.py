@@ -3,8 +3,7 @@ import sys
 from PyQt6 import QtWidgets
 from PyQt6.QtGui import QColor
 
-import tela_inicial
-import tela_notas
+from telas import tela_notas, tela_inicial
 from util.solver import resolve
 from util.mauanet import get_notas
 
