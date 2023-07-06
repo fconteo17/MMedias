@@ -2,4 +2,4 @@
 venv
 .idea
 *.ui
-*.json
+saved_grades.json
