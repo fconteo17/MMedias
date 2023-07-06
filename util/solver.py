@@ -1,21 +1,6 @@
 from pulp import *
 
 
-def get_notas(notas: dict, nome: str, bound: int):
-    if nome in notas.keys():
-        return notas[nome][bound]
-    elif nome[0] == 'P':
-        if bound == 0:
-            return 0
-        else:
-            return 8
-    elif nome[0] == 'T':
-        if bound == 0:
-            return 0
-        else:
-            return 9
-
-
 def get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8):
     f = open('util/funcoes.json')
     funcoes = json.load(f)
@@ -62,6 +47,7 @@ def solve(materias: dict):
             calculo[v.name] = ['%.2f' % v.varValue, notas[v.name][2]]
         calculos[materia] = calculo
     return calculos
+
 
 def resolve(materias):
     calculos = {}
