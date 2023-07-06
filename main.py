@@ -1,7 +1,9 @@
+import json
 import sys
 
 from PyQt6 import QtWidgets
 from PyQt6.QtGui import QColor
+from PyQt6.QtWidgets import QMessageBox
 
 from telas import tela_notas, tela_inicial
 from util.solver import resolve
@@ -11,6 +13,7 @@ from util.mauanet import get_notas
 class Controller:
     def __init__(self):
         self.materias = {}
+        self.saved_grades = {}
         self.is_shown = False
 
         self.tela_inicial_window = QtWidgets.QMainWindow()
@@ -32,10 +35,36 @@ class Controller:
         self.tela_inicial_window.show()
 
     def login(self):
-        self.materias = get_notas(self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text())
+        f = open('saved_grades.json')
+        self.saved_grades = json.load(f)
+        f.close()
+        if self.tela_inicial_ui.login.text() in self.saved_grades:
+            self.show_popup()
+        else:
+            self.materias = get_notas(self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text())
+        self.saved_grades[self.tela_inicial_ui.login.text()] = self.materias
+        with open('saved_grades.json', 'w') as f:
+            json.dump(self.saved_grades, f, ensure_ascii=False)
         self.tela_inicial_window.close()
         self.tela_notas_window.show()
         self.load_data(self.materias)
+
+    def show_popup(self):
+        msg = QMessageBox()
+        msg.setText("Gostaria de atualizar as notas?")
+        msg.addButton('Sim', QMessageBox.ButtonRole.YesRole)
+        msg.addButton('Não', QMessageBox.ButtonRole.NoRole)
+        msg.setIcon(QMessageBox.Icon.Question)
+        msg.buttonClicked.connect(self.popup_button)
+        x = msg.exec()
+
+    def popup_button(self, btn):
+        if btn.text() == 'Sim':
+            self.materias = get_notas(self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text())
+        else:
+            self.materias = self.saved_grades[self.tela_inicial_ui.login.text()]
+            print(self.materias)
+
 
     def load_data(self, materias):
         self.tela_notas_ui.provas.setRowCount(len(materias))

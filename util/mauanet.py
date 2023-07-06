@@ -22,7 +22,7 @@ def startup():
     chrome_options.add_argument("disable-infobars")
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--headless')
-    # chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
     s = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=s, options=chrome_options)
     driver.execute_cdp_cmd('Network.setUserAgentOverride', {
