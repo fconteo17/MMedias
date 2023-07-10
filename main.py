@@ -1,17 +1,26 @@
 import json
+import logging
+import os
 import sys
+import time
+from threading import Thread
 
-from PyQt6 import QtWidgets
+from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QMessageBox
 
 from telas import tela_notas, tela_inicial
-from util.solver import resolve
 from util.mauanet import get_notas
+from util.solver import solve
+
+folder = os.path.dirname(__file__)
+
+threads = []
 
 
 class Controller:
     def __init__(self):
+        self._translate = QtCore.QCoreApplication.translate
         self.materias = {}
         self.saved_grades = {}
         self.is_shown = False
@@ -35,16 +44,14 @@ class Controller:
         self.tela_inicial_window.show()
 
     def login(self):
-        f = open('saved_grades.json')
+        self.tela_inicial_ui.btn_login.setText(self._translate("Dialog", "Buscando Notas"))
+        f = open(os.path.join(folder, 'saved_grades.json'))
         self.saved_grades = json.load(f)
         f.close()
         if self.tela_inicial_ui.login.text() in self.saved_grades:
             self.show_popup()
         else:
             self.materias = get_notas(self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text())
-        self.saved_grades[self.tela_inicial_ui.login.text()] = self.materias
-        with open('saved_grades.json', 'w') as f:
-            json.dump(self.saved_grades, f, ensure_ascii=False)
         self.tela_inicial_window.close()
         self.tela_notas_window.show()
         self.load_data(self.materias)
@@ -63,8 +70,6 @@ class Controller:
             self.materias = get_notas(self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text())
         else:
             self.materias = self.saved_grades[self.tela_inicial_ui.login.text()]
-            print(self.materias)
-
 
     def load_data(self, materias):
         self.tela_notas_ui.provas.setRowCount(len(materias))
@@ -79,7 +84,7 @@ class Controller:
                         item.setBackground(QColor(133, 226, 255))
                     elif key not in notas:
                         item.setBackground(QColor(66, 66, 66))
-                    table.setItem(row, i+1, item)
+                    table.setItem(row, i + 1, item)
 
             self.tela_notas_ui.provas.setItem(row, 0, QtWidgets.QTableWidgetItem(materia))
             self.tela_notas_ui.trabalhos.setItem(row, 0, QtWidgets.QTableWidgetItem(materia))
@@ -92,23 +97,23 @@ class Controller:
             materia = self.tela_notas_ui.provas.item(item.row(), 0).text()
             nota = self.tela_notas_ui.provas.horizontalHeaderItem(item.column()).text()
             self.materias[materia][nota] = [item.text(), 1]
-            print(self.materias)
 
     def update_notas_trabalho(self, item):
         if self.is_shown:
             materia = self.tela_notas_ui.trabalhos.item(item.row(), 0).text()
             nota = self.tela_notas_ui.trabalhos.horizontalHeaderItem(item.column()).text()
             self.materias[materia][nota] = [item.text(), 1]
-            print(self.materias)
 
     def recalcular(self):
         self.is_shown = False
-        self.materias = resolve(self.materias)
+        self.materias = solve(self.materias)
         self.load_data(self.materias)
         self.is_shown = True
 
 
 if __name__ == '__main__':
+    log_format = "%(asctime)s: %(message)s"
+    logging.basicConfig(format=log_format, level=logging.INFO, datefmt="%H:%M:%S")
     app = QtWidgets.QApplication(sys.argv)
     controller = Controller()
     controller.show_tela_inicial()

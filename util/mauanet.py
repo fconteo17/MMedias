@@ -1,5 +1,5 @@
+import logging
 import os
-import time
 
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -22,7 +22,7 @@ def startup():
     chrome_options.add_argument("disable-infobars")
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--headless')
-    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+    # chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
     s = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=s, options=chrome_options)
     driver.execute_cdp_cmd('Network.setUserAgentOverride', {
@@ -42,7 +42,7 @@ def click(driver, xpath):
     driver.execute_script("arguments[0].click();", btn)
 
 
-def get_notas(login, password):
+def get_notas(login, password, tries=0):
     if len(login) == 8:
         login = login[:2] + '.' + login[2:7] + '-' + login[7:] + '@maua.br'
     if len(login) == 10:
@@ -50,13 +50,13 @@ def get_notas(login, password):
 
     driver = startup()
 
-    captch_solver = RecaptchaSolver(driver)
+    captcha_solver = RecaptchaSolver(driver)
 
     driver.get('https://www2.maua.br/mauanet.2.0')
 
     wait(driver, "//input[@id='maua_email']")
 
-    print("Logging in")
+    logging.info("Logging in as: %s", login)
 
     username = driver.find_element(By.XPATH, "//input[@id='maua_email']")
     username.clear()
@@ -69,17 +69,21 @@ def get_notas(login, password):
     recaptcha_iframe = driver.find_element(By.XPATH, '//*[@id="form_mauanet_login"]/div/div/div/div/iframe')
 
     try:
-        captch_solver.click_recaptcha_v2(iframe=recaptcha_iframe)
+        captcha_solver.click_recaptcha_v2(iframe=recaptcha_iframe)
     except TimeoutException:
-        print("Captcha passou direto")
+        logging.info("Captcha passou direto")
     except RecaptchaException:
-        print('Google ta boicotando, tentando novamente...')
-        time.sleep(5)
-        get_notas(login, password)
+        if tries >= 5:
+            logging.error('Captcha Bloqueado, tente novamente mais tarde')
+            exit()
+        tries += 1
+        logging.warning('Captcha Bloqueado, tentando novamente...')
+        get_notas(login, password, tries)
 
     click(driver, "//input[@id='maua_submit']")
 
-    print("Logged in")
+    logging.info("Logged in as: %s", login)
+
 
     driver.get('https://www2.maua.br/mauanet.2.0/boletim-escolar')
 
@@ -141,6 +145,6 @@ def get_materias(notas_tipo):
 
 if __name__ == '__main__':
     load_dotenv()
-    login = os.getenv("LOGIN")
-    senha = os.getenv("SENHA")
-    print(get_notas(login, senha))
+    login_default = os.getenv("LOGIN")
+    senha_default = os.getenv("SENHA")
+    print(get_notas(login_default, senha_default))
