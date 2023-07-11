@@ -11,7 +11,7 @@ from telas import tela_notas, tela_inicial
 from util.mauanet import get_notas
 from util.solver import solve
 
-folder = os.path.dirname(__file__)
+SAVED_GRADES = os.path.join(os.path.dirname(__file__), 'saved_grades.json')
 
 
 def get_max_t(materias):
@@ -58,11 +58,11 @@ class Controller:
 
     def login(self):
         self.tela_inicial_ui.btn_login.setText(self._translate("Dialog", "Buscando notas..."))
-        if not os.path.exists(os.path.join(folder, 'saved_grades.json')):
-            f = open(os.path.join(folder, 'saved_grades.json'), 'w')
+        if not os.path.exists(SAVED_GRADES):
+            f = open(SAVED_GRADES, 'w')
             f.write('{}')
             f.close()
-        f = open(os.path.join(folder, 'saved_grades.json'))
+        f = open(SAVED_GRADES)
         self.saved_grades = json.load(f)
         f.close()
         if self.tela_inicial_ui.login.text() in self.saved_grades:
@@ -81,7 +81,7 @@ class Controller:
         msg.addButton('Não', QMessageBox.ButtonRole.NoRole)
         msg.setIcon(QMessageBox.Icon.Question)
         msg.buttonClicked.connect(self.popup_button)
-        x = msg.exec()
+        msg.exec()
 
     def popup_button(self, btn):
         if btn.text() == 'Sim':
@@ -138,7 +138,7 @@ class Controller:
     def save_grades(self):
         self.saved_grades[self.tela_inicial_ui.login.text()] = self.materias
         json_object = json.dumps(self.saved_grades, ensure_ascii=False)
-        with open("saved_grades.json", "w") as outfile:
+        with open(SAVED_GRADES, "w") as outfile:
             outfile.write(json_object)
 
 

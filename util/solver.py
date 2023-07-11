@@ -1,4 +1,6 @@
-from pulp import *
+from pulp import LpProblem, LpMinimize, LpVariable
+import os
+import json
 
 folder = os.path.dirname(__file__)
 
@@ -7,7 +9,7 @@ def get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10
     f = open(os.path.join(folder, 'funcoes.json'))
     funcoes = json.load(f)
     if materia not in funcoes.keys():
-        return 0.125 * t1 + 0.125 * t2 + 0.125 * t3 + 0.125 * t4 + 0.125 * p1 + 0.125 * p2 + 0.125 * p3 + 0.125 * p4
+        return (t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10 + t11 + t12 + t13 + t14 + t15 + t16 + p1 + p2 + p3 + p4)/20
     return eval(funcoes[materia])
 
 
@@ -63,20 +65,13 @@ def format_notas(notas):
     for tipo, nota in notas.items():
         if type(nota) is list:
             if nota[1] == 0:
-                if tipo[0] == 'P':
-                    nota = [0, 8, 0]
-                else:
-                    nota = [0, 9, 0]
+                nota = [0, 10, 0]
             else:
                 nota = [float(nota[0]), float(nota[0]), 1]
-            notas[tipo] = nota
         else:
-            if nota in ['', 'NC', 'NE']:
-                if tipo[0] == 'P':
-                    nota = [0, 8, 0]
-                else:
-                    nota = [0, 9, 0]
+            if nota == '':
+                nota = [0, 10, 0]
             else:
                 nota = [float(nota), float(nota), 1]
-            notas[tipo] = nota
+        notas[tipo] = nota
     return notas

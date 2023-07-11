@@ -42,11 +42,16 @@ def click(driver, xpath):
     driver.execute_script("arguments[0].click();", btn)
 
 
+def format_username(username):
+    if len(username) == 8:
+        username = username[:2] + '.' + username[2:7] + '-' + username[7:] + '@maua.br'
+    if len(username) == 10:
+        username = username + '@maua.br'
+    return username
+
+
 def get_notas(login, password, tries=0):
-    if len(login) == 8:
-        login = login[:2] + '.' + login[2:7] + '-' + login[7:] + '@maua.br'
-    if len(login) == 10:
-        login = login + '@maua.br'
+    login = format_username(login)
 
     driver = startup()
 
@@ -84,14 +89,20 @@ def get_notas(login, password, tries=0):
 
     logging.info("Logged in as: %s", login)
 
-
     driver.get('https://www2.maua.br/mauanet.2.0/boletim-escolar')
 
     wait(driver, "//a[@class='provas']")
 
-    notas_prova = []
-    notas_trabalho = []
+    notas_prova = get_prova(driver, [])
 
+    click(driver, "//a[@class='trabalhos']")
+
+    notas_trabalho = get_trabalho(driver, [])
+
+    return solve(get_materias([notas_prova, notas_trabalho]))
+
+
+def get_prova(driver, notas_prova):
     for i, row in enumerate(driver.find_elements(By.XPATH, '//*[@id="notas"]/tbody/tr')):
         materia_prova = [
             driver.find_element(By.XPATH, f'//*[@id="notas"]/tbody/tr[{i + 1}]/td[{1}]').text.split("-")[1].strip()
@@ -104,9 +115,10 @@ def get_notas(login, password, tries=0):
                 nota = 0
             materia_prova.append(nota)
         notas_prova.append(materia_prova)
+    return notas_prova
 
-    click(driver, "//a[@class='trabalhos']")
 
+def get_trabalho(driver, notas_trabalho):
     for i, row in enumerate(driver.find_elements(By.XPATH, '//*[@id="notas"]/tbody/tr')):
         materia_trabalho = [
             driver.find_element(By.XPATH, f'//*[@id="notas"]/tbody/tr[{i + 1}]/td[{1}]').text.split("-")[1].strip()
@@ -119,9 +131,7 @@ def get_notas(login, password, tries=0):
                 nota = 0
             materia_trabalho.append(nota)
         notas_trabalho.append(materia_trabalho)
-
-    n = [notas_prova, notas_trabalho]
-    return solve(get_materias(n))
+    return notas_trabalho
 
 
 def get_materias(notas_tipo):
