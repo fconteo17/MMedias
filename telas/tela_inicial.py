@@ -7,6 +7,7 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
+from util.password import PasswordEdit
 
 
 class Ui_Dialog(object):
@@ -39,9 +40,8 @@ class Ui_Dialog(object):
 "                            ")
         self.label_2.setObjectName("label_2")
         self.verticalLayout.addWidget(self.label_2)
-        self.senha = QtWidgets.QLineEdit(parent=self.verticalWidget)
+        self.senha = PasswordEdit(parent=self.verticalWidget)
         self.senha.setStyleSheet("color: rgb(0, 0, 0);")
-        self.senha.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.senha.setObjectName("senha")
         self.verticalLayout.addWidget(self.senha)
         self.btn_login = QtWidgets.QPushButton(parent=self.verticalWidget)

@@ -3,7 +3,7 @@ from pulp import *
 folder = os.path.dirname(__file__)
 
 
-def get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8):
+def get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16):
     f = open(os.path.join(folder, 'funcoes.json'))
     funcoes = json.load(f)
     if materia not in funcoes.keys():
@@ -19,7 +19,7 @@ def solve(materias: dict):
         prob = LpProblem("Nota", LpMinimize)
 
         variables = {}
-        for key in ['P1', 'P2', 'P3', 'P4', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8']:
+        for key in ['P1', 'P2', 'P3', 'P4', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16']:
             if key in notas:
                 variables[key] = LpVariable(key, notas[key][0], notas[key][1])
             else:
@@ -37,10 +37,18 @@ def solve(materias: dict):
         t6 = variables['T6']
         t7 = variables['T7']
         t8 = variables['T8']
+        t9 = variables['T9']
+        t10 = variables['T10']
+        t11 = variables['T11']
+        t12 = variables['T12']
+        t13 = variables['T13']
+        t14 = variables['T14']
+        t15 = variables['T15']
+        t16 = variables['T16']
 
-        prob += get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8), "Nota Final"
+        prob += get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16), "Nota Final"
 
-        prob += get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8) >= 6, "Calculo da nota final"
+        prob += get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16) >= 6, "Calculo da nota final"
 
         prob.solve()
 

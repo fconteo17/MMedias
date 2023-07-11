@@ -2,8 +2,6 @@ import json
 import logging
 import os
 import sys
-import time
-from threading import Thread
 
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtGui import QColor
@@ -15,7 +13,17 @@ from util.solver import solve
 
 folder = os.path.dirname(__file__)
 
-threads = []
+
+def get_max_t(materias):
+    print(materias)
+    max_t = 0
+    for materia, notas in materias.items():
+        for key in notas.keys():
+            if key[0] == 'T':
+                valor = int(key[1:])
+                if valor > max_t:
+                    max_t = valor
+    return max_t
 
 
 class Controller:
@@ -34,7 +42,6 @@ class Controller:
         self.tela_notas_ui.setupUi(self.tela_notas_window)
         self.tela_notas_ui.provas.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
         self.tela_notas_ui.trabalhos.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-
         self.tela_inicial_ui.btn_login.clicked.connect(self.login)
         self.tela_notas_ui.provas.itemChanged.connect(self.update_notas_prova)
         self.tela_notas_ui.trabalhos.itemChanged.connect(self.update_notas_trabalho)
@@ -43,8 +50,14 @@ class Controller:
     def show_tela_inicial(self):
         self.tela_inicial_window.show()
 
+    def close_tela_inicial(self):
+        self.tela_inicial_window.close()
+
+    def show_tela_notas(self):
+        self.tela_notas_window.show()
+
     def login(self):
-        self.tela_inicial_ui.btn_login.setText(self._translate("Dialog", "Buscando Notas"))
+        self.tela_inicial_ui.btn_login.setText(self._translate("Dialog", "Buscando notas..."))
         f = open(os.path.join(folder, 'saved_grades.json'))
         self.saved_grades = json.load(f)
         f.close()
@@ -52,8 +65,9 @@ class Controller:
             self.show_popup()
         else:
             self.materias = get_notas(self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text())
-        self.tela_inicial_window.close()
-        self.tela_notas_window.show()
+            self.save_grades()
+        self.close_tela_inicial()
+        self.show_tela_notas()
         self.load_data(self.materias)
 
     def show_popup(self):
@@ -68,6 +82,7 @@ class Controller:
     def popup_button(self, btn):
         if btn.text() == 'Sim':
             self.materias = get_notas(self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text())
+            self.save_grades()
         else:
             self.materias = self.saved_grades[self.tela_inicial_ui.login.text()]
 
@@ -77,7 +92,10 @@ class Controller:
         row = 0
         for materia, notas in materias.items():
             for table, keys in [(self.tela_notas_ui.provas, ['P1', 'P2', 'P3', 'P4']),
-                                (self.tela_notas_ui.trabalhos, ['T1', 'T2', 'T3', 'T4'])]:
+                                (self.tela_notas_ui.trabalhos, [
+                                    'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8',
+                                    'T9', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16'
+                                ])]:
                 for i, key in enumerate(keys):
                     item = QtWidgets.QTableWidgetItem(str(notas.get(key, [''])[0]))
                     if key in notas and notas[key][1] == 0:
@@ -90,6 +108,9 @@ class Controller:
             self.tela_notas_ui.trabalhos.setItem(row, 0, QtWidgets.QTableWidgetItem(materia))
 
             row += 1
+        max_t = get_max_t(materias)
+        for i in range(max_t + 1, self.tela_notas_ui.trabalhos.columnCount()):
+            self.tela_notas_ui.trabalhos.removeColumn(max_t + 1)
         self.is_shown = True
 
     def update_notas_prova(self, item):
@@ -109,6 +130,12 @@ class Controller:
         self.materias = solve(self.materias)
         self.load_data(self.materias)
         self.is_shown = True
+
+    def save_grades(self):
+        self.saved_grades[self.tela_inicial_ui.login.text()] = self.materias
+        json_object = json.dumps(self.saved_grades, ensure_ascii=False)
+        with open("saved_grades.json", "w") as outfile:
+            outfile.write(json_object)
 
 
 if __name__ == '__main__':
