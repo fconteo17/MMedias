@@ -39,8 +39,12 @@ class Controller:
         self.tela_notas_window = QtWidgets.QMainWindow()
         self.tela_notas_ui = tela_notas.Ui_Dialog()
         self.tela_notas_ui.setupUi(self.tela_notas_window)
-        self.tela_notas_ui.provas.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.tela_notas_ui.trabalhos.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self.tela_notas_ui.provas.horizontalHeader().setSectionResizeMode(
+            QtWidgets.QHeaderView.ResizeMode.Stretch
+        )
+        self.tela_notas_ui.trabalhos.horizontalHeader().setSectionResizeMode(
+            QtWidgets.QHeaderView.ResizeMode.Stretch
+        )
         self.tela_inicial_ui.btn_login.clicked.connect(self.login)
         self.tela_notas_ui.provas.itemChanged.connect(self.update_notas_prova)
         self.tela_notas_ui.trabalhos.itemChanged.connect(self.update_notas_trabalho)
@@ -67,7 +71,9 @@ class Controller:
         if self.tela_inicial_ui.login.text() in self.saved_grades:
             self.show_popup()
         else:
-            self.materias = get_notas(self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text())
+            self.materias = get_notas(
+                self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text()
+            )
             self.save_grades()
         self.close_tela_inicial()
         self.show_tela_notas()
@@ -84,7 +90,9 @@ class Controller:
 
     def popup_button(self, btn):
         if btn.text() == 'Sim':
-            self.materias = get_notas(self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text())
+            self.materias = get_notas(
+                self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text()
+            )
             self.save_grades()
         else:
             self.materias = self.saved_grades[self.tela_inicial_ui.login.text()]
