@@ -58,6 +58,10 @@ class Controller:
 
     def login(self):
         self.tela_inicial_ui.btn_login.setText(self._translate("Dialog", "Buscando notas..."))
+        if not os.path.exists(os.path.join(folder, 'saved_grades.json')):
+            f = open(os.path.join(folder, 'saved_grades.json'), 'w')
+            f.write('{}')
+            f.close()
         f = open(os.path.join(folder, 'saved_grades.json'))
         self.saved_grades = json.load(f)
         f.close()
