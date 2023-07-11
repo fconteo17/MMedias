@@ -136,7 +136,6 @@ def get_trabalho(driver, notas_trabalho):
 
 def get_materias(notas_tipo):
     notas_prova = notas_tipo[0]
-    print(notas_prova)
     notas_trabalho = notas_tipo[1]
     materias = {}
     for materia in notas_prova:

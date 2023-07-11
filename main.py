@@ -15,7 +15,6 @@ SAVED_GRADES = os.path.join(os.path.dirname(__file__), 'saved_grades.json')
 
 
 def get_max_t(materias):
-    print(materias)
     max_t = 0
     for materia, notas in materias.items():
         for key in notas.keys():
