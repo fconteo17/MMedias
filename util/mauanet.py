@@ -100,6 +100,8 @@ def get_notas(login, password, tries=0):
             nota = driver.find_element(By.XPATH, f'//*[@id="notas"]/tbody/tr[{i + 1}]/td[{j}]').text
             if nota not in ['', 'NC']:
                 nota = (float(nota.replace(',', '.')))
+            if nota == 'NC':
+                nota = 0
             materia_prova.append(nota)
         notas_prova.append(materia_prova)
 
@@ -113,6 +115,8 @@ def get_notas(login, password, tries=0):
             nota = driver.find_element(By.XPATH, f'//*[@id="notas"]/tbody/tr[{i + 1}]/td[{j}]').text
             if nota not in ['', 'NE']:
                 nota = (float(nota.replace(',', '.')))
+            if nota == 'NE':
+                nota = 0
             materia_trabalho.append(nota)
         notas_trabalho.append(materia_trabalho)
 
@@ -122,14 +126,15 @@ def get_notas(login, password, tries=0):
 
 def get_materias(notas_tipo):
     notas_prova = notas_tipo[0]
+    print(notas_prova)
     notas_trabalho = notas_tipo[1]
     materias = {}
     for materia in notas_prova:
         materias[materia[0]] = {
             'P1': materia[1],
             'P2': materia[2],
-            'P3': materia[3],
-            'P4': materia[4],
+            'P3': materia[4],
+            'P4': materia[5],
         }
     for materia in notas_trabalho:
         materias[materia[0]]['T1'] = materia[1]
