@@ -1,6 +1,3 @@
-[![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
-
-
 # MMedias
 Programa para automaticamente calcular as notas necessarias para passar de ano
 ## Como usar
