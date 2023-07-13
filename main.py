@@ -18,7 +18,7 @@ SAVED_GRADES = os.path.join(os.path.dirname(__file__), 'saved_grades.json')
 
 
 def get_max_t(materias):
-    """Retorna o numero maximo de trabalhos.
+    """Retorna o numero maximo de trabalho.
 
     :param materias:
     :return:
