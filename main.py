@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Modulo para controlar as telas."""
+
 import json
 import logging
 import os
@@ -15,10 +18,15 @@ SAVED_GRADES = os.path.join(os.path.dirname(__file__), 'saved_grades.json')
 
 
 def get_max_t(materias):
+    """Retorna o numero maximo de trabalhos.
+
+    :param materias:
+    :return:
+    """
     max_t = 0
-    for materia, notas in materias.items():
+    for notas in materias.values():
         for key in notas.keys():
-            if key[0] == 'T':
+            if key[0] == 't':
                 valor = int(key[1:])
                 if valor > max_t:
                     max_t = valor
@@ -26,8 +34,8 @@ def get_max_t(materias):
 
 
 class Controller:
+    """Classe para controlar as telas."""
     def __init__(self):
-        self._translate = QtCore.QCoreApplication.translate
         self.materias = {}
         self.saved_grades = {}
         self.is_shown = False
@@ -51,23 +59,29 @@ class Controller:
         self.tela_notas_ui.recalcular.clicked.connect(self.recalcular)
 
     def show_tela_inicial(self):
+        """Mostra a tela inicial."""
         self.tela_inicial_window.show()
 
     def close_tela_inicial(self):
+        """Fecha a tela inicial."""
         self.tela_inicial_window.close()
 
     def show_tela_notas(self):
+        """Mostra a tela de notas."""
         self.tela_notas_window.show()
 
     def login(self):
-        self.tela_inicial_ui.btn_login.setText(self._translate("Dialog", "Buscando notas..."))
+        """Faz o login."""
+        self.tela_inicial_ui.btn_login.setText(
+            QtCore.QCoreApplication.translate("Dialog", "Buscando notas...")
+        )
         if not os.path.exists(SAVED_GRADES):
-            f = open(SAVED_GRADES, 'w')
-            f.write('{}')
-            f.close()
-        f = open(SAVED_GRADES)
-        self.saved_grades = json.load(f)
-        f.close()
+            with open(SAVED_GRADES, 'w') as file:
+                file.write('{}')
+                file.close()
+        with open(SAVED_GRADES) as file:
+            self.saved_grades = json.load(file)
+            file.close()
         if self.tela_inicial_ui.login.text() in self.saved_grades:
             self.show_popup()
         else:
@@ -80,6 +94,7 @@ class Controller:
         self.load_data(self.materias)
 
     def show_popup(self):
+        """Mostra o popup."""
         msg = QMessageBox()
         msg.setText("Gostaria de atualizar as notas?")
         msg.addButton('Sim', QMessageBox.ButtonRole.YesRole)
@@ -89,6 +104,7 @@ class Controller:
         msg.exec()
 
     def popup_button(self, btn):
+        """Funcao chamada quando o botao do popup e clicado."""
         if btn.text() == 'Sim':
             self.materias = get_notas(
                 self.tela_inicial_ui.login.text(), self.tela_inicial_ui.senha.text()
@@ -98,14 +114,18 @@ class Controller:
             self.materias = self.saved_grades[self.tela_inicial_ui.login.text()]
 
     def load_data(self, materias):
+        """Carrega os dados na tela.
+
+        :param materias:
+        """
         self.tela_notas_ui.provas.setRowCount(len(materias))
         self.tela_notas_ui.trabalhos.setRowCount(len(materias))
         row = 0
         for materia, notas in materias.items():
-            for table, keys in [(self.tela_notas_ui.provas, ['P1', 'P2', 'P3', 'P4']),
+            for table, keys in [(self.tela_notas_ui.provas, ['p1', 'p2', 'p3', 'p4']),
                                 (self.tela_notas_ui.trabalhos, [
-                                    'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8',
-                                    'T9', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16'
+                                    't1', 't2', 't3', 't4', 't5', 't6', 't7', 't8',
+                                    't9', 't10', 't11', 't12', 't13', 't14', 't15', 't16'
                                 ])]:
                 for i, key in enumerate(keys):
                     item = QtWidgets.QTableWidgetItem(str(notas.get(key, [''])[0]))
@@ -125,24 +145,36 @@ class Controller:
         self.is_shown = True
 
     def update_notas_prova(self, item):
+        """Funcao chamada ao atualizar uma nota de prova.
+
+        :param item:
+        :return:
+        """
         if self.is_shown:
             materia = self.tela_notas_ui.provas.item(item.row(), 0).text()
             nota = self.tela_notas_ui.provas.horizontalHeaderItem(item.column()).text()
             self.materias[materia][nota] = [item.text(), 1]
 
     def update_notas_trabalho(self, item):
+        """Funcao chamada ao atualizar uma nota de trabalho.
+
+        :param item:
+        :return:
+        """
         if self.is_shown:
             materia = self.tela_notas_ui.trabalhos.item(item.row(), 0).text()
             nota = self.tela_notas_ui.trabalhos.horizontalHeaderItem(item.column()).text()
             self.materias[materia][nota] = [item.text(), 1]
 
     def recalcular(self):
+        """Recalcula as notas ao clicar no botao."""
         self.is_shown = False
         self.materias = solve(self.materias)
         self.load_data(self.materias)
         self.is_shown = True
 
     def save_grades(self):
+        """Salva as notas no arquivo."""
         self.saved_grades[self.tela_inicial_ui.login.text()] = self.materias
         json_object = json.dumps(self.saved_grades, ensure_ascii=False)
         with open(SAVED_GRADES, "w") as outfile:
@@ -150,8 +182,8 @@ class Controller:
 
 
 if __name__ == '__main__':
-    log_format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=log_format, level=logging.INFO, datefmt="%H:%M:%S")
+    LOG_FORMAT = "%(asctime)s: %(message)s"
+    logging.basicConfig(format=LOG_FORMAT, level=logging.INFO, datefmt="%H:%M:%S")
     app = QtWidgets.QApplication(sys.argv)
     controller = Controller()
     controller.show_tela_inicial()

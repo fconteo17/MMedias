@@ -1,69 +1,66 @@
-from pulp import LpProblem, LpMinimize, LpVariable
+# -*- coding: utf-8 -*-
+"""Modulo para resolver o problema de otimizacao."""
+
 import os
 import json
+
+from pulp import LpProblem, LpMinimize, LpVariable
 
 folder = os.path.dirname(__file__)
 
 
-def get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16):
-    f = open(os.path.join(folder, 'funcoes.json'))
-    funcoes = json.load(f)
+def get_funcoes(materia):
+    """Retorna a funcao de otimizacao da materia.
+
+    :param materia: str
+    :return: str
+    """
+    with open(os.path.join(folder, 'funcoes.json')) as file:
+        funcoes = json.load(file)
     if materia not in funcoes.keys():
-        return (t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10 + t11 + t12 + t13 + t14 + t15 + t16 + p1 + p2 + p3 + p4)/20
-    return eval(funcoes[materia])
+        return 'teste'
+    return funcoes[materia]
 
 
 def solve(materias: dict):
+    """Resolve o problema de otimizacao.
+
+    :param materias: dict
+    :return: dict
+    """
     calculos = {}
     for materia, notas in materias.items():
         notas = format_notas(notas)
 
         prob = LpProblem("Nota", LpMinimize)
 
-        variables = {}
-        for key in ['P1', 'P2', 'P3', 'P4', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16']:
+        for key in ['p1', 'p2', 'p3', 'p4', 't1', 't2', 't3', 't4', 't5', 't6',
+                    't7', 't8', 't9', 't10', 't11', 't12', 't13', 't14', 't15', 't16']:
             if key in notas:
-                variables[key] = LpVariable(key, notas[key][0], notas[key][1])
+                globals()[key] = LpVariable(key, notas[key][0], notas[key][1])
             else:
-                variables[key] = LpVariable(key, 0, 10)
+                globals()[key] = LpVariable(key, 0, 10)
 
-        p1 = variables['P1']
-        p2 = variables['P2']
-        p3 = variables['P3']
-        p4 = variables['P4']
-        t1 = variables['T1']
-        t2 = variables['T2']
-        t3 = variables['T3']
-        t4 = variables['T4']
-        t5 = variables['T5']
-        t6 = variables['T6']
-        t7 = variables['T7']
-        t8 = variables['T8']
-        t9 = variables['T9']
-        t10 = variables['T10']
-        t11 = variables['T11']
-        t12 = variables['T12']
-        t13 = variables['T13']
-        t14 = variables['T14']
-        t15 = variables['T15']
-        t16 = variables['T16']
-
-        prob += get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16), "Nota Final"
-
-        prob += get_funcoes(materia, p1, p2, p3, p4, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16) >= 6, "Calculo da nota final"
+        funcao = eval(get_funcoes(materia))
+        prob += funcao, "Nota Final"
+        prob += funcao >= 6, "Calculo da nota final"
 
         prob.solve()
 
         calculo = {}
-        for v in prob.variables():
-            calculo[v.name] = ['%.2f' % v.varValue, notas[v.name][2]]
+        for variable in prob.variables():
+            calculo[variable.name] = [f'{variable.varValue:.2f}', notas[variable.name][2]]
         calculos[materia] = calculo
     return calculos
 
 
 def format_notas(notas):
+    """Formata as notas para o formato [min, max, peso]
+    :param notas: dict
+    :return: dict
+    """
     for tipo, nota in notas.items():
-        if type(nota) is list:
+        if isinstance(nota, list):
             if nota[1] == 0:
                 nota = [0, 10, 0]
             else:

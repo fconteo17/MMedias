@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
+"""Modulo para resgatar as notas do MauaNet."""
+
 import logging
 import os
+import sys
 
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -17,32 +21,54 @@ from util.solver import solve
 
 
 def startup():
+    """Inicia o driver do selenium e retorna o objeto.
+
+    :return:
+    """
     chrome_options = Options()
     chrome_options.add_argument("start-maximized")
     chrome_options.add_argument("disable-infobars")
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--headless')
-    # chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
-    s = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=s, options=chrome_options)
+    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.execute_cdp_cmd('Network.setUserAgentOverride', {
-        "userAgent": 'Mozilla/5.0 (Windows NT 4.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'})
+        "userAgent": 'Mozilla/5.0 (Windows NT 4.0; WOW64) '
+                     'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36'})
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     driver.maximize_window()
     return driver
 
 
 def wait(driver, xpath):
+    """Espera até que o elemento esteja visível na tela.
+
+    :param driver:
+    :param xpath:
+    :return:
+    """
     element = WebDriverWait(driver, 300).until(ec.element_to_be_clickable((By.XPATH, xpath)))
     return element
 
 
 def click(driver, xpath):
+    """Clica no elemento com o xpath passado.
+
+    :param driver:
+    :param xpath:
+    :return:
+    """
     btn = driver.find_element(By.XPATH, xpath)
     driver.execute_script("arguments[0].click();", btn)
 
 
 def format_username(username):
+    """Formata o username para o formato correto.
+
+    :param username: str
+    :return: str
+    """
     if len(username) == 8:
         username = username[:2] + '.' + username[2:7] + '-' + username[7:] + '@maua.br'
     if len(username) == 10:
@@ -51,6 +77,13 @@ def format_username(username):
 
 
 def get_notas(login, password, tries=0):
+    """Retorna as notas do MauaNet.
+
+    :param login:
+    :param password:
+    :param tries:
+    :return:
+    """
     login = format_username(login)
 
     driver = startup()
@@ -71,7 +104,9 @@ def get_notas(login, password, tries=0):
     user_password.clear()
     user_password.send_keys(password)
 
-    recaptcha_iframe = driver.find_element(By.XPATH, '//*[@id="form_mauanet_login"]/div/div/div/div/iframe')
+    recaptcha_iframe = driver.find_element(
+        By.XPATH, '//*[@id="form_mauanet_login"]/div/div/div/div/iframe'
+    )
 
     try:
         captcha_solver.click_recaptcha_v2(iframe=recaptcha_iframe)
@@ -80,7 +115,7 @@ def get_notas(login, password, tries=0):
     except RecaptchaException:
         if tries >= 5:
             logging.error('Captcha Bloqueado, tente novamente mais tarde')
-            exit()
+            sys.exit()
         tries += 1
         logging.warning('Captcha Bloqueado, tentando novamente...')
         get_notas(login, password, tries)
@@ -103,9 +138,17 @@ def get_notas(login, password, tries=0):
 
 
 def get_prova(driver, notas_prova):
-    for i, row in enumerate(driver.find_elements(By.XPATH, '//*[@id="notas"]/tbody/tr')):
+    """Retorna as notas das provas.
+
+    :param driver:
+    :param notas_prova:
+    :return:
+    """
+    for i, _row in enumerate(driver.find_elements(By.XPATH, '//*[@id="notas"]/tbody/tr')):
         materia_prova = [
-            driver.find_element(By.XPATH, f'//*[@id="notas"]/tbody/tr[{i + 1}]/td[{1}]').text.split("-")[1].strip()
+            driver.find_element(
+                By.XPATH, f'//*[@id="notas"]/tbody/tr[{i + 1}]/td[{1}]'
+            ).text.split("-")[1].strip()
         ]
         for j in range(5, 11):
             nota = driver.find_element(By.XPATH, f'//*[@id="notas"]/tbody/tr[{i + 1}]/td[{j}]').text
@@ -119,9 +162,17 @@ def get_prova(driver, notas_prova):
 
 
 def get_trabalho(driver, notas_trabalho):
-    for i, row in enumerate(driver.find_elements(By.XPATH, '//*[@id="notas"]/tbody/tr')):
+    """Retorna as notas dos trabalhos.
+
+    :param driver:
+    :param notas_trabalho:
+    :return:
+    """
+    for i, _row in enumerate(driver.find_elements(By.XPATH, '//*[@id="notas"]/tbody/tr')):
         materia_trabalho = [
-            driver.find_element(By.XPATH, f'//*[@id="notas"]/tbody/tr[{i + 1}]/td[{1}]').text.split("-")[1].strip()
+            driver.find_element(
+                By.XPATH, f'//*[@id="notas"]/tbody/tr[{i + 1}]/td[{1}]'
+            ).text.split("-")[1].strip()
         ]
         for j in range(12, 28):
             nota = driver.find_element(By.XPATH, f'//*[@id="notas"]/tbody/tr[{i + 1}]/td[{j}]').text
@@ -135,33 +186,38 @@ def get_trabalho(driver, notas_trabalho):
 
 
 def get_materias(notas_tipo):
+    """Retorna as matérias.
+
+    :param notas_tipo:
+    :return:
+    """
     notas_prova = notas_tipo[0]
     notas_trabalho = notas_tipo[1]
     materias = {}
     for materia in notas_prova:
         materias[materia[0]] = {
-            'P1': materia[1],
-            'P2': materia[2],
-            'P3': materia[4],
-            'P4': materia[5],
+            'p1': materia[1],
+            'p2': materia[2],
+            'p3': materia[4],
+            'p4': materia[5],
         }
     for materia in notas_trabalho:
-        materias[materia[0]]['T1'] = materia[1]
-        materias[materia[0]]['T2'] = materia[2]
-        materias[materia[0]]['T3'] = materia[3]
-        materias[materia[0]]['T4'] = materia[4]
-        materias[materia[0]]['T5'] = materia[5]
-        materias[materia[0]]['T6'] = materia[6]
-        materias[materia[0]]['T7'] = materia[7]
-        materias[materia[0]]['T8'] = materia[8]
-        materias[materia[0]]['T9'] = materia[9]
-        materias[materia[0]]['T10'] = materia[10]
-        materias[materia[0]]['T11'] = materia[11]
-        materias[materia[0]]['T12'] = materia[12]
-        materias[materia[0]]['T13'] = materia[13]
-        materias[materia[0]]['T14'] = materia[14]
-        materias[materia[0]]['T15'] = materia[15]
-        materias[materia[0]]['T16'] = materia[16]
+        materias[materia[0]]['t1'] = materia[1]
+        materias[materia[0]]['t2'] = materia[2]
+        materias[materia[0]]['t3'] = materia[3]
+        materias[materia[0]]['t4'] = materia[4]
+        materias[materia[0]]['t5'] = materia[5]
+        materias[materia[0]]['t6'] = materia[6]
+        materias[materia[0]]['t7'] = materia[7]
+        materias[materia[0]]['t8'] = materia[8]
+        materias[materia[0]]['t9'] = materia[9]
+        materias[materia[0]]['t10'] = materia[10]
+        materias[materia[0]]['t11'] = materia[11]
+        materias[materia[0]]['t12'] = materia[12]
+        materias[materia[0]]['t13'] = materia[13]
+        materias[materia[0]]['t14'] = materia[14]
+        materias[materia[0]]['t15'] = materia[15]
+        materias[materia[0]]['t16'] = materia[16]
 
     return materias
 
