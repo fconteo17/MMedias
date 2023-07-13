@@ -1,13 +1,16 @@
+[![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
+
+
 # MMedias
 Programa para automaticamente calcular as notas necessarias para passar de ano
 ## Como usar
-1. Baixe o arquivo .zip
-2. Extraia o arquivo
-3. Use o Python pip para instalar as dependencias
+- Baixe o arquivo .zip
+- Extraia o arquivo
+- Use o Python pip para instalar as dependencias
 ```bash
 pip install -r requirements.txt
 ```
-4. Execute o arquivo main.py
+- Execute o arquivo main.py
 ```bash
 python main.py
 ```

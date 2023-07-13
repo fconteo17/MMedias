@@ -3,3 +3,4 @@ venv
 .idea
 *.ui
 saved_grades.json
+.pylintrc
