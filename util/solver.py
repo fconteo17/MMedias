@@ -39,7 +39,7 @@ def solve(materias: dict):
             if key in notas:
                 globals()[key] = LpVariable(key, notas[key][0], notas[key][1])
             else:
-                globals()[key] = LpVariable(key, 0, 10)
+                globals()[key] = LpVariable(key, 0, 9)
 
         funcao = eval(get_funcoes(materia))
         prob += funcao, "Nota Final"
@@ -62,12 +62,12 @@ def format_notas(notas):
     for tipo, nota in notas.items():
         if isinstance(nota, list):
             if nota[1] == 0:
-                nota = [0, 10, 0]
+                nota = [0, 9, 0]
             else:
                 nota = [float(nota[0]), float(nota[0]), 1]
         else:
             if nota == '':
-                nota = [0, 10, 0]
+                nota = [0, 9, 0]
             else:
                 nota = [float(nota), float(nota), 1]
         notas[tipo] = nota

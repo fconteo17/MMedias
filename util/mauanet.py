@@ -30,7 +30,7 @@ def startup():
     chrome_options.add_argument("disable-infobars")
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument('--headless')
-    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+    # chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.execute_cdp_cmd('Network.setUserAgentOverride', {
@@ -191,8 +191,7 @@ def get_materias(notas_tipo):
     :param notas_tipo:
     :return:
     """
-    notas_prova = notas_tipo[0]
-    notas_trabalho = notas_tipo[1]
+    notas_prova, notas_trabalho = notas_tipo
     materias = {}
     for materia in notas_prova:
         materias[materia[0]] = {
@@ -202,22 +201,8 @@ def get_materias(notas_tipo):
             'p4': materia[5],
         }
     for materia in notas_trabalho:
-        materias[materia[0]]['t1'] = materia[1]
-        materias[materia[0]]['t2'] = materia[2]
-        materias[materia[0]]['t3'] = materia[3]
-        materias[materia[0]]['t4'] = materia[4]
-        materias[materia[0]]['t5'] = materia[5]
-        materias[materia[0]]['t6'] = materia[6]
-        materias[materia[0]]['t7'] = materia[7]
-        materias[materia[0]]['t8'] = materia[8]
-        materias[materia[0]]['t9'] = materia[9]
-        materias[materia[0]]['t10'] = materia[10]
-        materias[materia[0]]['t11'] = materia[11]
-        materias[materia[0]]['t12'] = materia[12]
-        materias[materia[0]]['t13'] = materia[13]
-        materias[materia[0]]['t14'] = materia[14]
-        materias[materia[0]]['t15'] = materia[15]
-        materias[materia[0]]['t16'] = materia[16]
+        for i in range(1, 17):
+            materias[materia[0]][f't{i}'] = materia[i]
 
     return materias
 
